@@ -1,21 +1,21 @@
-# 🔥 Calculadoras Pro 2026
+# 🔥 SimulaGrana
 
-**5 Calculadoras Financeiras Completas com Dados Atualizados de Março/2026**
+**Simule seus investimentos e planeje seu futuro financeiro - 100% Gratuito**
 
 ![React](https://img.shields.io/badge/React-18.3-blue)
 ![Vite](https://img.shields.io/badge/Vite-5.4-purple)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## 📊 Calculadoras Incluídas
+## 💰 5 Calculadoras Financeiras Completas
 
-### 1. 💰 Juros Compostos
+### 1. 💵 Juros Compostos
 - Cálculo com valor inicial + aportes mensais
 - Projeção de até 50 anos
 - Gráfico de evolução patrimonial
 - Tabela ano-a-ano detalhada
 - ROI calculado automaticamente
 
-### 2. 🔥 FIRE / Renda Passiva
+### 2. 🔥 FIRE / Independência Financeira
 - Baseado na **Regra 25x**
 - Calcula anos para independência financeira
 - Projeção de patrimônio com gráfico
@@ -42,6 +42,18 @@
 - 3 tipos de atividade (Comércio, Serviços, Ambos)
 - Alerta sobre limite de faturamento
 - Projeção de 5 anos
+
+---
+
+## 📊 Dados Atualizados Março/2026
+
+✅ Selic: **15% a.a.**  
+✅ CDI: **14,5% a.a.**  
+✅ Inflação: **4% a.a.**  
+✅ Salário Mínimo: **R$ 1.621**  
+✅ MEI INSS: **R$ 81,05**  
+✅ Energia Solar: **R$ 3.500-5.000/kWp**  
+✅ Financiamento: **4-13,5% a.a.**  
 
 ---
 
@@ -108,16 +120,32 @@ netlify deploy --prod
 
 ---
 
-## 💰 Monetização
+## 💰 Por Que SimulaGrana?
 
-### CPM Esperado
-- **Conservador:** 50k visitas/mês × $8 CPM = ~$4.000/mês
-- **Otimista:** 200k visitas/mês × $12 CPM = ~$15.000+/mês
+### ✨ Diferenciais
+✅ **5 calculadoras profissionais** em um só lugar  
+✅ **Dados oficiais 2026** constantemente atualizados  
+✅ **100% gratuito** - sem cadastro ou limite de uso  
+✅ **Design moderno** com Dark/Light theme  
+✅ **Gráficos interativos** para visualizar seu futuro financeiro  
+✅ **Mobile-first** - funciona perfeitamente no celular  
+✅ **Ultra-rápido** - feito com Vite + React  
 
-### Estratégias
-1. **Google AdSense** - Keywords financeiras (CPC alto)
-2. **Links Afiliados** - Corretoras, bancos digitais
-3. **Email Marketing** - Capture leads para newsletter
+### 🎯 Para Quem é o SimulaGrana?
+- 💼 **Investidores iniciantes** que querem simular aportes
+- 🔥 **Jovens buscando FIRE** (independência financeira)
+- ☀️ **Donos de casa** considerando energia solar
+- 🏠 **Compradores de imóvel** planejando financiamento
+- 📊 **MEIs** calculando impostos e faturamento
+
+---
+
+## 🛠️ Tecnologias
+
+- **React 18.3** - UI moderna e reativa
+- **Vite 5.4** - Build ultra-rápido
+- **Recharts 2.12** - Gráficos bonitos e interativos
+- **CSS Variables** - Dark/Light theme suave
 
 ---
 
@@ -125,20 +153,23 @@ netlify deploy --prod
 
 ✅ Dark/Light Theme automático  
 ✅ Totalmente responsivo (mobile-first)  
-✅ Gráficos interativos (Recharts)  
+✅ Gráficos interativos de evolução  
+✅ Tabelas detalhadas ano-a-ano  
 ✅ Dados atualizados março/2026  
 ✅ Sem backend necessário  
-✅ Performance otimizada (Vite)  
+✅ Performance otimizada  
 ✅ SEO-friendly  
 
 ---
 
-## 🛠️ Tecnologias
+## 📝 Próximas Funcionalidades
 
-- **React 18.3** - UI moderna
-- **Vite 5.4** - Build ultra-rápido
-- **Recharts 2.12** - Gráficos bonitos
-- **CSS Variables** - Dark/Light theme
+🔜 Comparador de investimentos (CDB vs Tesouro vs Ações)  
+🔜 Calculadora de Aposentadoria  
+🔜 Simulador de Imposto de Renda  
+🔜 Exportar resultados em PDF  
+🔜 Salvar simulações (localStorage)  
+🔜 App mobile (PWA)  
 
 ---
 
@@ -148,4 +179,14 @@ MIT License - Use livremente, comercialmente ou não.
 
 ---
 
-**Desenvolvido com ❤️ usando React + Vite**
+## 💡 Contribua
+
+Sugestões? Encontrou um bug? Quer adicionar uma nova calculadora?
+
+Abra uma issue ou envie um pull request!
+
+---
+
+**🔥 Desenvolvido com ❤️ para ajudar brasileiros a planejar melhor seu futuro financeiro**
+
+**SimulaGrana** - Porque planejar sua grana é simples quando você tem as ferramentas certas! 💰
