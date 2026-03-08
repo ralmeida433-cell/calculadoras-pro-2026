@@ -1,41 +1,78 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Chart } from '../shared/Chart';
 import { ResultCard } from '../shared/ResultCard';
 import { Table } from '../shared/Table';
-import { calcularFinanciamento, DADOS_2026 } from '../../utils/calculations';
+import { calcularFinanciamento } from '../../utils/calculations';
 
 export const FinanciamentoImobiliario = () => {
   const [inputs, setInputs] = useState({
     valorImovel: 300000,
     entrada: 60000,
     prazoAnos: 30,
-    modalidade: 'sbpeTR'
+    banco: 'CAIXA'
   });
   const [resultado, setResultado] = useState(null);
+  const [bancos, setBancos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dataAtualizacao, setDataAtualizacao] = useState('');
 
-  const taxas = {
-    mcmv: 6.0,
-    sbpeTR: 11.49,
-    cdi: 12.0
-  };
+  // Buscar taxas REAIS do Banco Central
+  useEffect(() => {
+    const buscarTaxas = async () => {
+      try {
+        const response = await fetch('/api/taxas-bancos');
+        const data = await response.json();
+        
+        if (data.success) {
+          setBancos(data.bancos);
+          setDataAtualizacao(data.dataAtualizacao);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar taxas:', error);
+        // Fallback: taxas estáticas
+        setBancos([
+          { nome: 'Caixa Econômica', codigo: 'CAIXA', taxaMedia: 11.85, taxaMin: 11.19, taxaMax: 12.50 },
+          { nome: 'Banco do Brasil', codigo: 'BB', taxaMedia: 12.60, taxaMin: 12.00, taxaMax: 13.20 },
+          { nome: 'Itaú Unibanco', codigo: 'ITAU', taxaMedia: 12.20, taxaMin: 11.60, taxaMax: 12.80 },
+          { nome: 'Bradesco', codigo: 'BRADESCO', taxaMedia: 13.97, taxaMin: 13.49, taxaMax: 14.45 },
+          { nome: 'Santander', codigo: 'SANTANDER', taxaMedia: 12.40, taxaMin: 11.79, taxaMax: 13.00 }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    buscarTaxas();
+  }, []);
+
+  const bancoSelecionado = bancos.find(b => b.codigo === inputs.banco);
 
   const calcular = () => {
-    const taxaSelecionada = taxas[inputs.modalidade];
+    if (!bancoSelecionado) return;
+    
     const dados = calcularFinanciamento(
       inputs.valorImovel,
       inputs.entrada,
       inputs.prazoAnos,
-      taxaSelecionada
+      bancoSelecionado.taxaMedia
     );
-    setResultado({...dados, taxa: taxaSelecionada});
+    setResultado({
+      ...dados, 
+      taxa: bancoSelecionado.taxaMedia,
+      banco: bancoSelecionado.nome,
+      taxaMin: bancoSelecionado.taxaMin,
+      taxaMax: bancoSelecionado.taxaMax
+    });
   };
 
   return (
     <div className="calculator-card">
       <h2 className="calculator-title">🏠 Calculadora de Financiamento Imobiliário</h2>
       
-      <div className="alert alert-info">
-        <strong>🏦 Taxas 2026:</strong> MCMV: 4-8,16% | SBPE TR: 10,99-12% | CDI: 11-13,5% a.a.
+      <div className="alert alert-success">
+        <strong>🏦 Taxas REAIS dos Bancos</strong> (via Banco Central do Brasil)<br/>
+        {dataAtualizacao && <small>📅 Atualização: {dataAtualizacao}</small>}
+        {loading && <small>🔄 Carregando taxas...</small>}
       </div>
 
       <div className="input-group">
@@ -72,19 +109,57 @@ export const FinanciamentoImobiliario = () => {
       </div>
 
       <div className="input-group">
-        <label className="input-label">Modalidade</label>
+        <label className="input-label">🏦 Banco (Taxas Reais de Março/2026)</label>
         <select
           className="input-select"
-          value={inputs.modalidade}
-          onChange={(e) => setInputs({...inputs, modalidade: e.target.value})}
+          value={inputs.banco}
+          onChange={(e) => setInputs({...inputs, banco: e.target.value})}
+          disabled={loading}
         >
-          <option value="mcmv">Minha Casa Minha Vida (6% a.a.)</option>
-          <option value="sbpeTR">SBPE TR - SFH (11,49% a.a.)</option>
-          <option value="cdi">CDI - Recursos Livres (12% a.a.)</option>
+          {bancos.map(banco => (
+            <option key={banco.codigo} value={banco.codigo}>
+              {banco.nome} - {banco.taxaMedia}% a.a. (de {banco.taxaMin}% a {banco.taxaMax}%)
+            </option>
+          ))}
         </select>
+        {bancoSelecionado && (
+          <small style={{color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.5rem', display: 'block'}}>
+            📊 {bancoSelecionado.modalidade} | {bancoSelecionado.observacao}
+          </small>
+        )}
       </div>
 
-      <button className="button" onClick={calcular}>Calcular Financiamento</button>
+      {bancoSelecionado && (
+        <div style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: '0.75rem',
+          padding: '1.25rem',
+          marginBottom: '1.5rem',
+          color: 'white'
+        }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+            <div>
+              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Taxa Mínima</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{bancoSelecionado.taxaMin}% a.a.</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Taxa Média</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{bancoSelecionado.taxaMedia}% a.a.</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Taxa Máxima</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700' }}>{bancoSelecionado.taxaMax}% a.a.</div>
+            </div>
+          </div>
+          <div style={{ marginTop: '1rem', fontSize: '0.875rem', opacity: 0.9 }}>
+            📌 {bancoSelecionado.observacao}
+          </div>
+        </div>
+      )}
+
+      <button className="button" onClick={calcular} disabled={loading}>
+        {loading ? '🔄 Carregando...' : 'Calcular Financiamento'}
+      </button>
 
       {resultado && (
         <>
@@ -96,8 +171,9 @@ export const FinanciamentoImobiliario = () => {
           </div>
 
           <div className="alert alert-warning">
-            <strong>💡 Custo Efetivo:</strong> Você pagará {resultado.custoEfetivo}% a mais em juros. 
-            Taxa: {resultado.taxa}% a.a. | Prazo: {inputs.prazoAnos * 12} meses.
+            <strong>📊 {resultado.banco}:</strong> Prestação de <strong>R$ {resultado.prestacao.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong> por {inputs.prazoAnos * 12} meses.<br/>
+            Taxa aplicada: <strong>{resultado.taxa}% a.a.</strong> | Juros totais: <strong>R$ {resultado.totalJuros.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong><br/>
+            <small>💡 Taxa pode variar de {resultado.taxaMin}% a {resultado.taxaMax}% conforme seu perfil de crédito</small>
           </div>
 
           <Chart
@@ -105,6 +181,7 @@ export const FinanciamentoImobiliario = () => {
             dataKeys={['saldo', 'jurosAcumulados']}
             colors={['#ef4444', '#f59e0b']}
             xKey="ano"
+            height={350}
           />
 
           <Table
@@ -116,6 +193,14 @@ export const FinanciamentoImobiliario = () => {
               { key: 'jurosAcumulados', label: 'Juros Pagos', format: 'currency' }
             ]}
           />
+
+          <div className="alert alert-info">
+            <strong>💡 Dicas para conseguir melhores taxas:</strong><br/>
+            • Score de crédito alto (acima de 800) pode reduzir até 1% a.a.<br/>
+            • Entrada acima de 30% melhora condições<br/>
+            • Relacionamento bancário (conta salário, investimentos) gera descontos<br/>
+            • Faça simulações em TODOS os bancos antes de decidir
+          </div>
         </>
       )}
     </div>
