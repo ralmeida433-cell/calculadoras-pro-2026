@@ -2,8 +2,8 @@ export const Header = () => {
   return (
     <header className="header">
       <div className="container">
-        <h1>🔥 Calculadoras Pro 2026</h1>
-        <p>Ferramentas gratuitas para planejar sua independência financeira com dados atualizados</p>
+        <h1>💰 SimulaGrana</h1>
+        <p>Simule seus investimentos e planeje seu futuro financeiro com dados atualizados de 2026</p>
       </div>
     </header>
   );

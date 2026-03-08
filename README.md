@@ -1,192 +1,134 @@
-# 🔥 SimulaGrana
+# 💰 SimulaGrana
 
-**Simule seus investimentos e planeje seu futuro financeiro - 100% Gratuito**
+**Simule seus Investimentos e Planeje seu Futuro Financeiro**
+
+Calculadoras financeiras completas e gratuitas para brasileiros, com dados atualizados de março/2026.
 
 ![React](https://img.shields.io/badge/React-18.3-blue)
 ![Vite](https://img.shields.io/badge/Vite-5.4-purple)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## 💰 5 Calculadoras Financeiras Completas
+---
 
-### 1. 💵 Juros Compostos
-- Cálculo com valor inicial + aportes mensais
+## 📊 5 Calculadoras Completas
+
+### 1. 💰 Juros Compostos
+- Simule investimentos com aportes mensais
 - Projeção de até 50 anos
 - Gráfico de evolução patrimonial
-- Tabela ano-a-ano detalhada
 - ROI calculado automaticamente
 
 ### 2. 🔥 FIRE / Independência Financeira
 - Baseado na **Regra 25x**
-- Calcula anos para independência financeira
-- Projeção de patrimônio com gráfico
+- Calcula anos para alcançar FIRE
 - Renda passiva mensal estimada
-- Taxa Selic 2026: **15% a.a.**
+- Taxa CDI 2026: **14,5% a.a.**
 
 ### 3. ☀️ Energia Solar
-- Potência necessária (kWp)
-- Payback detalhado
-- ROI em 25 anos
-- Dados reais de custos 2026: **R$ 3.500-5.000/kWp**
-- Alerta sobre regras do Fio B (60% a partir de 2026)
+- Cálculo de potência necessária (kWp)
+- Payback e ROI em 25 anos
+- Custos reais 2026: **R$ 3.500-5.000/kWp**
+- Considera regras do Fio B (60%)
 
 ### 4. 🏠 Financiamento Imobiliário
-- Tabela Price (SAC em breve)
+- Tabela Price completa
 - 3 modalidades: MCMV, SBPE TR, CDI
 - Taxas 2026: **4% a 13,5% a.a.**
 - Evolução do saldo devedor
-- Custo Efetivo Total (CET)
 
 ### 5. 📊 Impostos MEI
-- Valores atualizados 2026: **INSS R$ 81,05**
+- Valores 2026: **INSS R$ 81,05**
 - Limite anual: **R$ 81.000**
-- 3 tipos de atividade (Comércio, Serviços, Ambos)
-- Alerta sobre limite de faturamento
+- 3 tipos de atividade
 - Projeção de 5 anos
 
 ---
 
-## 📊 Dados Atualizados Março/2026
+## 🚀 Como Usar
 
-✅ Selic: **15% a.a.**  
-✅ CDI: **14,5% a.a.**  
-✅ Inflação: **4% a.a.**  
-✅ Salário Mínimo: **R$ 1.621**  
-✅ MEI INSS: **R$ 81,05**  
-✅ Energia Solar: **R$ 3.500-5.000/kWp**  
-✅ Financiamento: **4-13,5% a.a.**  
+### Acesse Online
+🌐 **[simulagrana.vercel.app](#)** (em breve)
 
----
-
-## 🚀 Instalação
-
-### Pré-requisitos
-- Node.js 18+ instalado
-- npm ou yarn
-
-### Passo a Passo
+### Rodar Localmente
 
 ```bash
-# 1. Clonar o repositório
+# Clonar repositório
 git clone https://github.com/ralmeida433-cell/calculadoras-pro-2026.git
 cd calculadoras-pro-2026
 
-# 2. Instalar dependências
+# Instalar dependências
 npm install
 
-# 3. Rodar em desenvolvimento
+# Rodar em desenvolvimento
 npm run dev
-
-# 4. Acessar no navegador
-# http://localhost:3000
 ```
+
+Acesse: `http://localhost:3000`
 
 ---
 
 ## 📦 Build para Produção
 
 ```bash
-# Gerar build otimizado
 npm run build
-
-# Preview do build
 npm run preview
 ```
 
-Os arquivos estarão na pasta `dist/`
+Arquivos otimizados em: `dist/`
 
 ---
 
-## 🌐 Deploy Gratuito
+## 🎯 Por Que SimulaGrana?
 
-### Opção 1: Vercel (Recomendado)
-
-```bash
-# Instalar Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-```
-
-### Opção 2: Netlify
-
-```bash
-# Instalar Netlify CLI
-npm i -g netlify-cli
-
-# Deploy
-netlify deploy --prod
-```
-
----
-
-## 💰 Por Que SimulaGrana?
-
-### ✨ Diferenciais
-✅ **5 calculadoras profissionais** em um só lugar  
-✅ **Dados oficiais 2026** constantemente atualizados  
-✅ **100% gratuito** - sem cadastro ou limite de uso  
-✅ **Design moderno** com Dark/Light theme  
-✅ **Gráficos interativos** para visualizar seu futuro financeiro  
-✅ **Mobile-first** - funciona perfeitamente no celular  
-✅ **Ultra-rápido** - feito com Vite + React  
-
-### 🎯 Para Quem é o SimulaGrana?
-- 💼 **Investidores iniciantes** que querem simular aportes
-- 🔥 **Jovens buscando FIRE** (independência financeira)
-- ☀️ **Donos de casa** considerando energia solar
-- 🏠 **Compradores de imóvel** planejando financiamento
-- 📊 **MEIs** calculando impostos e faturamento
+✅ **Dados Oficiais 2026** - Selic, CDI, MEI, energia solar  
+✅ **100% Brasileiro** - Linguagem e valores para o mercado BR  
+✅ **Dark/Light Theme** - Conforto visual automático  
+✅ **Gráficos Interativos** - Visualize suas projeções  
+✅ **Totalmente Gratuito** - Sem cadastro ou limitações  
+✅ **Ultra Rápido** - Construído com React + Vite  
 
 ---
 
 ## 🛠️ Tecnologias
 
-- **React 18.3** - UI moderna e reativa
+- **React 18.3** - Interface moderna
 - **Vite 5.4** - Build ultra-rápido
-- **Recharts 2.12** - Gráficos bonitos e interativos
-- **CSS Variables** - Dark/Light theme suave
+- **Recharts 2.12** - Gráficos profissionais
+- **CSS Variables** - Temas dinâmicos
 
 ---
 
-## 🎨 Funcionalidades
+## 📊 Dados Atualizados Março/2026
 
-✅ Dark/Light Theme automático  
-✅ Totalmente responsivo (mobile-first)  
-✅ Gráficos interativos de evolução  
-✅ Tabelas detalhadas ano-a-ano  
-✅ Dados atualizados março/2026  
-✅ Sem backend necessário  
-✅ Performance otimizada  
-✅ SEO-friendly  
+| Indicador | Valor |
+|-----------|-------|
+| **Selic** | 15,0% a.a. |
+| **CDI** | 14,5% a.a. |
+| **Inflação (IPCA)** | 4,0% a.a. |
+| **Salário Mínimo** | R$ 1.621,00 |
+| **MEI INSS** | R$ 81,05 |
+| **Limite MEI** | R$ 81.000/ano |
 
 ---
 
-## 📝 Próximas Funcionalidades
+## 🤝 Contribua
 
-🔜 Comparador de investimentos (CDB vs Tesouro vs Ações)  
-🔜 Calculadora de Aposentadoria  
-🔜 Simulador de Imposto de Renda  
-🔜 Exportar resultados em PDF  
-🔜 Salvar simulações (localStorage)  
-🔜 App mobile (PWA)  
+Encontrou um bug? Tem sugestões? Abra uma **issue** ou faça um **pull request**!
 
 ---
 
 ## 📄 Licença
 
-MIT License - Use livremente, comercialmente ou não.
+MIT License - Use livremente!
 
 ---
 
-## 💡 Contribua
-
-Sugestões? Encontrou um bug? Quer adicionar uma nova calculadora?
-
-Abra uma issue ou envie um pull request!
+**💚 Desenvolvido com carinho para ajudar brasileiros a simularem e planejarem melhor seus investimentos.**
 
 ---
 
-**🔥 Desenvolvido com ❤️ para ajudar brasileiros a planejar melhor seu futuro financeiro**
+### 📌 Links Úteis
 
-**SimulaGrana** - Porque planejar sua grana é simples quando você tem as ferramentas certas! 💰
+- 🌐 Site: [simulagrana.vercel.app](#)
+- 🐛 GitHub: [github.com/ralmeida433-cell/calculadoras-pro-2026](https://github.com/ralmeida433-cell/calculadoras-pro-2026)
+- 📧 Contato: [ralmeida433@gmail.com](mailto:ralmeida433@gmail.com)
