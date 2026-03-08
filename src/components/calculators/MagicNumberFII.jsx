@@ -61,11 +61,15 @@ export const MagicNumberFII = () => {
     }
   };
 
-  // Magic Number Básico (mostrado automaticamente)
+  // Magic Number CORRETO: Cotação / Dividendo Mensal
+  // Exemplo: Se cotação = R$ 100 e dividendo = R$ 0,80
+  // Magic Number = 100 / 0,80 = 125 cotas
+  // Com 125 cotas: 125 × R$ 0,80 = R$ 100 (compra 1 cota nova)
   const calcularMagicNumberBasico = (fii) => {
     const cotacao = fii.regularMarketPrice;
     const dividendoMensal = fii.dividendoMensal;
     
+    // FÓRMULA CORRETA: Magic Number = Cotação / Dividendo
     const magicNumber = Math.ceil(cotacao / dividendoMensal);
     const investimentoMagic = magicNumber * cotacao;
     const rendaMagic = magicNumber * dividendoMensal;
@@ -136,8 +140,9 @@ export const MagicNumberFII = () => {
       <h2 className="calculator-title">💎 Magic Number - Fundos Imobiliários</h2>
       
       <div className="alert alert-info">
-        <strong>📋 Dados em Tempo Real B3:</strong> Sistema com 3 APIs diferentes garante 99.9% de cobertura de todos FIIs da bolsa.
-        Magic Number = número de cotas para que dividendos comprem 1 nova cota/mês.
+        <strong>📊 Magic Number:</strong> Quantidade de cotas necessárias para que os dividendos mensais comprem 1 nova cota por mês.<br/>
+        <strong>Fórmula:</strong> Magic Number = Cotação ÷ Dividendo Mensal<br/>
+        <strong>Exemplo:</strong> Se cota = R$ 100 e dividendo = R$ 0,80 → MN = 125 cotas (125 × R$ 0,80 = R$ 100)
       </div>
 
       <div className="input-group">
@@ -200,12 +205,13 @@ export const MagicNumberFII = () => {
               </div>
               
               <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
-                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Quantidade de cotas</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>{magicNumberBasico.cotas}</div>
+                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>🎯 Magic Number</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>{magicNumberBasico.cotas} cotas</div>
+                <small style={{ fontSize: '0.75rem', opacity: 0.8 }}>{magicNumberBasico.cotacao.toFixed(2)} ÷ {magicNumberBasico.dividendo.toFixed(2)}</small>
               </div>
               
               <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
-                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Valor do investimento</div>
+                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>💰 Investimento necessário</div>
                 <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>R$ {magicNumberBasico.investimento.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               </div>
             </div>
@@ -219,17 +225,20 @@ export const MagicNumberFII = () => {
               border: '2px solid rgba(16, 185, 129, 0.5)'
             }}>
               <div style={{ fontSize: '0.875rem', opacity: 0.95, marginBottom: '0.5rem', textAlign: 'center' }}>
-                Com este investimento, compra-se 1 nova cota deste ativo todos os meses.
+                ✨ Com {magicNumberBasico.cotas} cotas, os dividendos compram 1 nova cota todo mês!
               </div>
               <div style={{ fontSize: '1.5rem', fontWeight: '700', textAlign: 'center', color: '#10b981' }}>
-                R$ {magicNumberBasico.dividendo.toFixed(2)} x {magicNumberBasico.cotas} = R$ {magicNumberBasico.renda.toFixed(2)} / mês
+                {magicNumberBasico.cotas} cotas × R$ {magicNumberBasico.dividendo.toFixed(2)} = R$ {magicNumberBasico.renda.toFixed(2)} / mês
+              </div>
+              <div style={{ fontSize: '0.875rem', opacity: 0.9, marginTop: '0.5rem', textAlign: 'center' }}>
+                💡 R$ {magicNumberBasico.renda.toFixed(2)} ≈ R$ {magicNumberBasico.cotacao.toFixed(2)} (1 cota nova)
               </div>
             </div>
           </div>
 
           {apiUsada && (
             <div style={{ textAlign: 'center', marginTop: '0.75rem', opacity: 0.6, fontSize: '0.875rem' }}>
-              📊 Dados via {apiUsada}
+              📊 Dados em tempo real via {apiUsada}
             </div>
           )}
         </>
