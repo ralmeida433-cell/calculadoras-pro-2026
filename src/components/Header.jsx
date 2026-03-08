@@ -28,7 +28,7 @@ export const Header = () => {
           opacity: 0.95,
           maxWidth: '800px'
         }}>
-          Simule seus investimentos e planeje seu futuro financeiro com dados atualizados de 2026
+          10 calculadoras profissionais para simular investimentos, FIIs, ações e planeje seu futuro financeiro com dados de 2026
         </p>
       </div>
     </header>
