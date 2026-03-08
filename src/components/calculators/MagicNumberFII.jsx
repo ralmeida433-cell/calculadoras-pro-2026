@@ -14,9 +14,9 @@ export const MagicNumberFII = () => {
     aporteMensal: 2000,
     cotasAtuais: 0
   });
+  const [magicNumberBasico, setMagicNumberBasico] = useState(null);
   const [resultado, setResultado] = useState(null);
 
-  // Buscar FII usando nossa Serverless Function (resolve CORS)
   const buscarFII = async () => {
     if (!ticker || ticker.length < 5) {
       setErro('❌ Digite um ticker válido (ex: MXRF11)');
@@ -27,20 +27,21 @@ export const MagicNumberFII = () => {
     setErro('');
     setFiiData(null);
     setResultado(null);
+    setMagicNumberBasico(null);
     setApiUsada('');
     
     const tickerUpper = ticker.toUpperCase();
     
     try {
-      // Chamar nossa API proxy (Vercel Serverless Function)
       const response = await fetch(`/api/fii-proxy?ticker=${tickerUpper}`);
-      
       const data = await response.json();
       
       if (data.success && data.data) {
         setFiiData(data.data);
         setApiUsada(data.source);
-        calcularMagicNumber(data.data);
+        
+        // Calcular Magic Number AUTOMATICAMENTE
+        calcularMagicNumberBasico(data.data);
       } else {
         throw new Error(data.error || 'FII não encontrado');
       }
@@ -60,12 +61,30 @@ export const MagicNumberFII = () => {
     }
   };
 
-  const calcularMagicNumber = (fii) => {
+  // Magic Number Básico (mostrado automaticamente)
+  const calcularMagicNumberBasico = (fii) => {
     const cotacao = fii.regularMarketPrice;
     const dividendoMensal = fii.dividendoMensal;
     
     const magicNumber = Math.ceil(cotacao / dividendoMensal);
     const investimentoMagic = magicNumber * cotacao;
+    const rendaMagic = magicNumber * dividendoMensal;
+    
+    setMagicNumberBasico({
+      cotas: magicNumber,
+      investimento: investimentoMagic,
+      renda: rendaMagic,
+      cotacao: cotacao,
+      dividendo: dividendoMensal
+    });
+  };
+
+  // Simulação Personalizada (usuário escolhe meta)
+  const calcularSimulacao = () => {
+    if (!fiiData) return;
+    
+    const cotacao = fiiData.regularMarketPrice;
+    const dividendoMensal = fiiData.dividendoMensal;
     
     const cotasParaMeta = Math.ceil(inputs.metaRendaMensal / dividendoMensal);
     const investimentoMeta = cotasParaMeta * cotacao;
@@ -105,14 +124,9 @@ export const MagicNumberFII = () => {
     const tempoParaMeta = mes / 12;
     
     setResultado({
-      magicNumber,
-      investimentoMagic,
       cotasParaMeta,
       investimentoMeta,
       tempoParaMeta: tempoParaMeta.toFixed(1),
-      rendaMagic: Math.round(magicNumber * dividendoMensal),
-      dividendoMensal,
-      cotacao,
       projecao: projecao.filter((_, i) => i % 3 === 0 || i === projecao.length - 1).slice(0, 20)
     });
   };
@@ -159,14 +173,78 @@ export const MagicNumberFII = () => {
         </div>
       )}
 
+      {/* MAGIC NUMBER AUTOMÁTICO (aparece assim que buscar) */}
+      {magicNumberBasico && (
+        <>
+          <div style={{ 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '1rem',
+            padding: '2rem',
+            marginTop: '1.5rem',
+            color: 'white',
+            boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+          }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', marginBottom: '1.5rem', textAlign: 'center' }}>
+              💎 Magic Number do {fiiData.shortName}
+            </h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
+                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Preço atual da cota</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>R$ {magicNumberBasico.cotacao.toFixed(2)}</div>
+              </div>
+              
+              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
+                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Último rendimento</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>R$ {magicNumberBasico.dividendo.toFixed(2)}</div>
+              </div>
+              
+              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
+                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Quantidade de cotas</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>{magicNumberBasico.cotas}</div>
+              </div>
+              
+              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
+                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Valor do investimento</div>
+                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>R$ {magicNumberBasico.investimento.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              </div>
+            </div>
+
+            <div style={{ 
+              marginTop: '1.5rem', 
+              padding: '1.25rem', 
+              background: 'rgba(16, 185, 129, 0.25)', 
+              borderRadius: '0.75rem',
+              backdropFilter: 'blur(10px)',
+              border: '2px solid rgba(16, 185, 129, 0.5)'
+            }}>
+              <div style={{ fontSize: '0.875rem', opacity: 0.95, marginBottom: '0.5rem', textAlign: 'center' }}>
+                Com este investimento, compra-se 1 nova cota deste ativo todos os meses.
+              </div>
+              <div style={{ fontSize: '1.5rem', fontWeight: '700', textAlign: 'center', color: '#10b981' }}>
+                R$ {magicNumberBasico.dividendo.toFixed(2)} x {magicNumberBasico.cotas} = R$ {magicNumberBasico.renda.toFixed(2)} / mês
+              </div>
+            </div>
+          </div>
+
+          {apiUsada && (
+            <div style={{ textAlign: 'center', marginTop: '0.75rem', opacity: 0.6, fontSize: '0.875rem' }}>
+              📊 Dados via {apiUsada}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* SIMULAÇÃO PERSONALIZADA (usuário escolhe cenário) */}
       {fiiData && (
         <>
-          <div className="alert alert-success">
-            <strong>✅ {fiiData.shortName}</strong><br/>
-            Cotação: R$ {fiiData.regularMarketPrice.toFixed(2)} | 
-            Variação: {fiiData.regularMarketChangePercent.toFixed(2)}% | 
-            Dividendo Médio: R$ {fiiData.dividendoMensal.toFixed(3)}/mês
-            {apiUsada && <span style={{ opacity: 0.7, fontSize: '0.875rem' }}> | Fonte: {apiUsada}</span>}
+          <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '2px solid #e5e7eb' }}>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem', color: '#374151' }}>
+              🎯 Simule Seu Próprio Cenário
+            </h3>
+            <p style={{ opacity: 0.7, marginBottom: '1.5rem' }}>
+              Personalize sua meta de renda mensal e veja quanto tempo levará para atingir:
+            </p>
           </div>
 
           <div className="input-group">
@@ -199,46 +277,40 @@ export const MagicNumberFII = () => {
             />
           </div>
 
-          <button className="button" onClick={() => calcularMagicNumber(fiiData)}>
-            Calcular Magic Number
+          <button className="button" onClick={calcularSimulacao}>
+            Simular Meu Cenário
           </button>
         </>
       )}
 
       {resultado && (
         <>
-          <div className="results-grid">
+          <div className="results-grid" style={{ marginTop: '1.5rem' }}>
             <ResultCard 
-              label="💎 Magic Number" 
-              value={`${resultado.magicNumber} cotas`} 
+              label="Cotas Necessárias" 
+              value={`${resultado.cotasParaMeta} cotas`} 
               type="text"
               large 
             />
             <ResultCard 
-              label="Investimento Magic" 
-              value={resultado.investimentoMagic} 
+              label="Investimento Total" 
+              value={resultado.investimentoMeta} 
             />
             <ResultCard 
-              label="Renda com Magic Number" 
-              value={resultado.rendaMagic} 
+              label="Tempo Estimado" 
+              value={`${resultado.tempoParaMeta} anos`}
+              type="text"
             />
             <ResultCard 
-              label="Dividendo/Cota/Mês" 
-              value={resultado.dividendoMensal} 
+              label="Meta Mensal" 
+              value={inputs.metaRendaMensal} 
             />
-          </div>
-
-          <div className="alert alert-warning">
-            <strong>🎯 Para atingir R$ {inputs.metaRendaMensal.toLocaleString('pt-BR')}/mês:</strong><br/>
-            Você precisa de <strong>{resultado.cotasParaMeta.toLocaleString('pt-BR')} cotas</strong> | 
-            Investimento: <strong>R$ {resultado.investimentoMeta.toLocaleString('pt-BR')}</strong><br/>
-            Tempo estimado: <strong>{resultado.tempoParaMeta} anos</strong> com aportes de R$ {inputs.aporteMensal.toLocaleString('pt-BR')}/mês
           </div>
 
           <Chart
             data={resultado.projecao}
             dataKeys={['cotas', 'rendaMensal']}
-            colors={['#10b981', '#f59e0b']}
+            colors={['#667eea', '#10b981']}
             xKey="ano"
             height={350}
           />
@@ -255,7 +327,7 @@ export const MagicNumberFII = () => {
           />
 
           <div className="alert alert-info">
-            <strong>💡 Dica:</strong> O Magic Number considera reinvestimento automático de dividendos. 
+            <strong>💡 Dica:</strong> O cálculo considera reinvestimento automático de dividendos. 
             Quanto maior o FII, mais tempo leva, mas a renda passiva é proporcional ao investimento.
           </div>
         </>
