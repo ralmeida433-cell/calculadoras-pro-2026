@@ -8,6 +8,10 @@ import { EnergiaSolar } from './components/calculators/EnergiaSolar';
 import { FinanciamentoImobiliario } from './components/calculators/FinanciamentoImobiliario';
 import { ImpostosMEI } from './components/calculators/ImpostosMEI';
 import { MagicNumberFII } from './components/calculators/MagicNumberFII';
+import { MetodoBazin } from './components/calculators/MetodoBazin';
+import { MetodoGraham } from './components/calculators/MetodoGraham';
+import { MetodoBuffett } from './components/calculators/MetodoBuffett';
+import { MetodoFisher } from './components/calculators/MetodoFisher';
 import './styles/globals.css';
 
 function App() {
@@ -27,6 +31,14 @@ function App() {
         return <ImpostosMEI />;
       case 'fii':
         return <MagicNumberFII />;
+      case 'bazin':
+        return <MetodoBazin />;
+      case 'graham':
+        return <MetodoGraham />;
+      case 'buffett':
+        return <MetodoBuffett />;
+      case 'fisher':
+        return <MetodoFisher />;
       default:
         return <JurosCompostos />;
     }
@@ -41,7 +53,7 @@ function App() {
         {renderCalculator()}
       </main>
       <footer className="container" style={{ textAlign: 'center', padding: '2rem 0', opacity: 0.7 }}>
-        <p>💰 SimulaGrana © 2026 - Dados atualizados março/2026</p>
+        <p>📊 SimulaGrana © 2026 - Dados atualizados março/2026</p>
         <p style={{ fontSize: '0.875rem' }}>Simulador de investimentos gratuito para brasileiros</p>
       </footer>
     </div>
