@@ -4,7 +4,7 @@ import { ResultCard } from '../shared/ResultCard';
 import { Table } from '../shared/Table';
 
 export const MagicNumberFII = () => {
-  const [ticker, setTicker] = useState('MXRF11');
+  const [ticker, setTicker] = useState('');
   const [loading, setLoading] = useState(false);
   const [fiiData, setFiiData] = useState(null);
   const [erro, setErro] = useState('');
@@ -15,46 +15,62 @@ export const MagicNumberFII = () => {
   });
   const [resultado, setResultado] = useState(null);
 
-  // Dados de exemplo para FIIs populares (fallback)
-  const fiisExemplo = {
-    'MXRF11': { nome: 'Maxi Renda', cotacao: 10.45, dividendo: 0.092 },
-    'HGLG11': { nome: 'CSHG Logística', cotacao: 162.50, dividendo: 1.35 },
-    'VISC11': { nome: 'Vinci Shopping', cotacao: 104.20, dividendo: 0.92 },
-    'GARE11': { nome: 'Guardian Real Estate', cotacao: 8.95, dividendo: 0.074 },
-    'KNRI11': { nome: 'Kinea Renda', cotacao: 99.80, dividendo: 0.83 }
-  };
-
   const buscarFII = async () => {
+    if (!ticker || ticker.length < 5) {
+      setErro('❌ Digite um ticker válido (ex: MXRF11)');
+      return;
+    }
+
     setLoading(true);
     setErro('');
     setFiiData(null);
     setResultado(null);
     
     try {
-      // Tentar API real primeiro
+      // API brapi.dev - Melhor para mercado brasileiro
       const response = await fetch(
-        `https://brapi.dev/api/quote/${ticker}?fundamental=true&dividends=true`,
+        `https://brapi.dev/api/quote/${ticker.toUpperCase()}`,
         { 
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: { 
+            'Accept': 'application/json',
+            'User-Agent': 'SimulaGrana/1.0'
+          }
         }
       );
       
       if (!response.ok) {
-        throw new Error('API indisponível');
+        throw new Error(`Erro HTTP: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Resposta API:', data);
+      console.log('Resposta brapi.dev:', data);
       
-      if (data.results && data.results[0]) {
+      if (data.results && data.results.length > 0) {
         const fii = data.results[0];
+        
+        // Validar se é realmente um FII
+        if (!fii.regularMarketPrice || fii.regularMarketPrice <= 0) {
+          throw new Error('Ticker não encontrado ou sem cotação');
+        }
+
+        // Calcular dividendo mensal (média dos últimos 12 meses se disponível)
+        let dividendoMensal = 0;
+        if (fii.dividendsData && fii.dividendsData.cashDividends) {
+          const dividendos = fii.dividendsData.cashDividends.slice(0, 12);
+          const somaDividendos = dividendos.reduce((acc, div) => acc + (div.rate || 0), 0);
+          dividendoMensal = somaDividendos / Math.max(dividendos.length, 1);
+        } else {
+          // Fallback: estimar 0.8% ao mês (DY médio conservador)
+          dividendoMensal = fii.regularMarketPrice * 0.008;
+        }
+        
         const fiiProcessado = {
           symbol: fii.symbol,
           shortName: fii.shortName || fii.longName || ticker,
           regularMarketPrice: fii.regularMarketPrice,
           regularMarketChangePercent: fii.regularMarketChangePercent || 0,
-          dividendoMensal: fii.dividendsData?.cashAmount || (fii.regularMarketPrice * 0.008)
+          dividendoMensal: dividendoMensal
         };
         
         setFiiData(fiiProcessado);
@@ -63,26 +79,14 @@ export const MagicNumberFII = () => {
         throw new Error('FII não encontrado');
       }
     } catch (error) {
-      console.error('Erro na API:', error);
-      
-      // Fallback: usar dados de exemplo
-      const fiiExemplo = fiisExemplo[ticker.toUpperCase()];
-      
-      if (fiiExemplo) {
-        const fiiProcessado = {
-          symbol: ticker,
-          shortName: fiiExemplo.nome,
-          regularMarketPrice: fiiExemplo.cotacao,
-          regularMarketChangePercent: 0,
-          dividendoMensal: fiiExemplo.dividendo
-        };
-        
-        setFiiData(fiiProcessado);
-        calcularMagicNumber(fiiProcessado);
-        setErro('⚠️ Usando dados de exemplo (API offline). Cotações podem estar desatualizadas.');
-      } else {
-        setErro(`❌ FII "${ticker}" não encontrado. Tente: MXRF11, HGLG11, VISC11, GARE11 ou KNRI11`);
-      }
+      console.error('Erro ao buscar FII:', error);
+      setErro(
+        `❌ Erro ao buscar "${ticker}". Verifique:\n` +
+        `• Ticker correto (deve terminar em 11: MXRF11, HGLG11, etc)\n` +
+        `• FII está ativo na B3\n` +
+        `• Conexão com internet\n\n` +
+        `Exemplos válidos: MXRF11, HGLG11, VISC11, KNRI11, XPML11`
+      );
     } finally {
       setLoading(false);
     }
@@ -150,7 +154,7 @@ export const MagicNumberFII = () => {
       <h2 className="calculator-title">💎 Magic Number - Fundos Imobiliários</h2>
       
       <div className="alert alert-info">
-        <strong>📋 Dados em Tempo Real:</strong> Cotações atualizadas da B3 via API brapi.dev.
+        <strong>📋 Dados em Tempo Real via brapi.dev:</strong> Cotações atualizadas da B3 (delay 30 min).
         Magic Number = número de cotas para que dividendos comprem 1 nova cota/mês.
       </div>
 
@@ -163,8 +167,9 @@ export const MagicNumberFII = () => {
             value={ticker}
             onChange={(e) => setTicker(e.target.value.toUpperCase())}
             onKeyPress={(e) => e.key === 'Enter' && buscarFII()}
-            placeholder="MXRF11"
+            placeholder="Digite o ticker (ex: MXRF11)"
             style={{ flex: 1 }}
+            maxLength={6}
           />
           <button 
             className="button" 
@@ -175,10 +180,13 @@ export const MagicNumberFII = () => {
             {loading ? '🔄 Buscando...' : '🔎 Buscar'}
           </button>
         </div>
+        <small style={{ opacity: 0.7, fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+          💡 Principais FIIs: MXRF11, HGLG11, XPML11, VISC11, KNRI11, BTLG11, TRXF11
+        </small>
       </div>
 
       {erro && (
-        <div className="alert alert-warning">
+        <div className="alert alert-warning" style={{ whiteSpace: 'pre-line' }}>
           {erro}
         </div>
       )}
@@ -188,7 +196,8 @@ export const MagicNumberFII = () => {
           <div className="alert alert-success">
             <strong>✅ {fiiData.shortName}</strong><br/>
             Cotação: R$ {fiiData.regularMarketPrice.toFixed(2)} | 
-            Dividendo Mensal: R$ {fiiData.dividendoMensal.toFixed(3)}
+            Variação: {fiiData.regularMarketChangePercent.toFixed(2)}% | 
+            Dividendo Médio: R$ {fiiData.dividendoMensal.toFixed(3)}/mês
           </div>
 
           <div className="input-group">
