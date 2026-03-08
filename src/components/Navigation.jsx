@@ -2,9 +2,10 @@ export const Navigation = ({ activeCalc, setActiveCalc }) => {
   const calculators = [
     { id: 'juros', label: '💰 Juros Compostos', emoji: '📈' },
     { id: 'fire', label: '🔥 FIRE / Renda Passiva', emoji: '💵' },
+    { id: 'fii', label: '💎 Magic Number FII', emoji: '🏢' },
     { id: 'solar', label: '☀️ Energia Solar', emoji: '⚡' },
-    { id: 'imovel', label: '🏠 Financiamento', emoji: '🏦' },
-    { id: 'mei', label: '📊 Impostos MEI', emoji: '💼' }
+    { id: 'imovel', label: '🏠 Financiamento', emoji: '🏬' },
+    { id: 'mei', label: '📋 Impostos MEI', emoji: '💼' }
   ];
 
   return (

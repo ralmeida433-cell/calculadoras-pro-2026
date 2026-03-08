@@ -7,10 +7,11 @@ import { RendaPassivaFIRE } from './components/calculators/RendaPassivaFIRE';
 import { EnergiaSolar } from './components/calculators/EnergiaSolar';
 import { FinanciamentoImobiliario } from './components/calculators/FinanciamentoImobiliario';
 import { ImpostosMEI } from './components/calculators/ImpostosMEI';
+import { MagicNumberFII } from './components/calculators/MagicNumberFII';
 import './styles/globals.css';
 
 function App() {
-  const [activeCalc, setActiveCalc] = useState('fire');
+  const [activeCalc, setActiveCalc] = useState('juros');
 
   const renderCalculator = () => {
     switch(activeCalc) {
@@ -24,35 +25,26 @@ function App() {
         return <FinanciamentoImobiliario />;
       case 'mei':
         return <ImpostosMEI />;
+      case 'fii':
+        return <MagicNumberFII />;
       default:
-        return <RendaPassivaFIRE />;
+        return <JurosCompostos />;
     }
   };
 
   return (
-    <>
+    <div className="app">
       <ThemeToggle />
       <Header />
       <Navigation activeCalc={activeCalc} setActiveCalc={setActiveCalc} />
-      <main className="container" style={{ paddingBottom: '3rem' }}>
+      <main className="container">
         {renderCalculator()}
-        
-        <footer style={{ 
-          marginTop: '4rem', 
-          paddingTop: '2rem', 
-          borderTop: '2px solid var(--border)',
-          textAlign: 'center',
-          color: 'var(--text-secondary)'
-        }}>
-          <p>
-            <strong>Calculadoras Pro 2026</strong> - Dados atualizados com informações oficiais de março/2026
-          </p>
-          <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-            Selic: 15% | CDI: 14,5% | Salário Mínimo: R$ 1.621 | Limite MEI: R$ 81.000
-          </p>
-        </footer>
       </main>
-    </>
+      <footer className="container" style={{ textAlign: 'center', padding: '2rem 0', opacity: 0.7 }}>
+        <p>💰 SimulaGrana © 2026 - Dados atualizados março/2026</p>
+        <p style={{ fontSize: '0.875rem' }}>Simulador de investimentos gratuito para brasileiros</p>
+      </footer>
+    </div>
   );
 }
 
