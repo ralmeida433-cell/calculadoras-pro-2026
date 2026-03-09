@@ -1,8 +1,7 @@
 // Vercel Serverless Function para proxy de APIs de FIIs
-// Resolve problema de CORS no navegador
+import fiisData from './fiis-data.json';
 
 export default async function handler(req, res) {
-  // Habilitar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -22,13 +21,13 @@ export default async function handler(req, res) {
   let dividendoMensal = null;
   let fonte = null;
 
-  // 1️⃣ Tentar brapi.dev (melhor fonte para FIIs brasileiros)
+  // 1️⃣ Tentar brapi.dev primeiro
   try {
     const brapiRes = await fetch(
       `https://brapi.dev/api/quote/${tickerUpper}?fundamental=true`,
       { 
         headers: { 'Accept': 'application/json' },
-        timeout: 5000
+        signal: AbortSignal.timeout(5000)
       }
     );
 
@@ -42,7 +41,6 @@ export default async function handler(req, res) {
           precoAtual = fii.regularMarketPrice;
           fonte = 'brapi.dev';
           
-          // Tentar pegar dividendos reais
           if (fii.dividendsData?.cashDividends?.length > 0) {
             const dividendosRecentes = fii.dividendsData.cashDividends
               .filter(d => d.rate && d.rate > 0)
@@ -60,15 +58,22 @@ export default async function handler(req, res) {
     console.log('brapi.dev falhou:', error.message);
   }
 
-  // 2️⃣ Se não temos preço ainda, tentar Yahoo Finance
+  // 2️⃣ Se não conseguiu pela API, tentar base local
+  if (!precoAtual && fiisData[tickerUpper]) {
+    precoAtual = fiisData[tickerUpper].price;
+    dividendoMensal = fiisData[tickerUpper].dividend;
+    fonte = 'Base local (dados recentes)';
+  }
+
+  // 3️⃣ Tentar Yahoo Finance como último recurso
   if (!precoAtual) {
     try {
       const tickerSA = `${tickerUpper}.SA`;
       const yahooRes = await fetch(
         `https://query1.finance.yahoo.com/v8/finance/chart/${tickerSA}?interval=1d&range=5d`,
         { 
-          headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-          timeout: 5000
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(5000)
         }
       );
 
@@ -78,50 +83,17 @@ export default async function handler(req, res) {
         if (data.chart?.result?.[0]?.meta?.regularMarketPrice) {
           precoAtual = data.chart.result[0].meta.regularMarketPrice;
           if (!fonte) fonte = 'Yahoo Finance';
+          
+          // Se Yahoo encontrou preço mas não temos dividendo, estimar
+          if (!dividendoMensal) {
+            dividendoMensal = precoAtual * 0.0075;
+            fonte = fonte + ' (dividendo estimado)';
+          }
         }
       }
     } catch (error) {
       console.log('Yahoo Finance falhou:', error.message);
     }
-  }
-
-  // 3️⃣ Se temos preço mas não temos dividendo, tentar FundsExplorer
-  if (precoAtual && !dividendoMensal) {
-    try {
-      const fundsRes = await fetch(
-        `https://www.fundsexplorer.com.br/funds/${tickerUpper.toLowerCase()}`,
-        { 
-          headers: { 
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'text/html'
-          },
-          timeout: 5000
-        }
-      );
-
-      if (fundsRes.ok) {
-        const html = await fundsRes.text();
-        
-        // Procurar pelo último dividendo
-        const dividendoMatch = html.match(/Último Rendimento.*?R\$\s*([\d,\.]+)/is) ||
-                               html.match(/dividend-value[^>]*>\s*R\$\s*([\d,\.]+)/is);
-        
-        if (dividendoMatch) {
-          dividendoMensal = parseFloat(dividendoMatch[1].replace('.', '').replace(',', '.'));
-          fonte = fonte + ' + FundsExplorer';
-        }
-      }
-    } catch (error) {
-      console.log('FundsExplorer falhou:', error.message);
-    }
-  }
-
-  // 4️⃣ Se ainda não temos dividendo, usar estimativa conservadora baseada em DY médio de FIIs
-  if (precoAtual && !dividendoMensal) {
-    // FIIs brasileiros têm DY médio de 0.7% a 1.0% ao mês
-    // Usando 0.75% como estimativa conservadora
-    dividendoMensal = precoAtual * 0.0075;
-    fonte = fonte + ' (dividendo estimado em 0.75% a.m.)';
   }
 
   // ✅ Se temos preço E dividendo, retornar sucesso
@@ -135,14 +107,14 @@ export default async function handler(req, res) {
         regularMarketPrice: precoAtual,
         regularMarketChangePercent: 0,
         dividendoMensal: dividendoMensal,
-        estimado: !fonte.includes('brapi.dev') || fonte.includes('estimado')
+        estimado: fonte.includes('estimado') || fonte.includes('Base local')
       }
     });
   }
 
-  // ❌ Se não conseguimos dados, retornar erro
+  // ❌ Não encontrou
   return res.status(404).json({
     success: false,
-    error: `FII "${tickerUpper}" não encontrado. Verifique se o ticker está correto e se o FII está ativo na B3.`
+    error: `FII "${tickerUpper}" não encontrado. Verifique se o ticker está correto.`
   });
 }
