@@ -1,36 +1,39 @@
-export const Header = () => {
+export const Header = ({ activeCalc, calcNames }) => {
+  const titles = {
+    juros: { title: 'Juros Compostos', sub: 'Simule o crescimento do seu investimento ao longo do tempo' },
+    fire: { title: 'FIRE / Renda Passiva', sub: 'Calcule quanto você precisa para se aposentar com liberdade financeira' },
+    fii: { title: 'Magic Number FII', sub: 'Descubra quantas cotas você precisa para viver de dividendos' },
+    bazin: { title: 'Método Bazin', sub: 'Avalie ações pagadoras de dividendos com o critério de Décio Bazin' },
+    graham: { title: 'Método Graham', sub: 'Calcule o valor intrínseco e a margem de segurança de uma ação' },
+    buffett: { title: 'Método Buffett', sub: 'Analise a qualidade e o valuation da empresa como Warren Buffett' },
+    fisher: { title: 'Método Fisher', sub: 'Identifique growth stocks de alto potencial com o método Philip Fisher' },
+    solar: { title: 'Energia Solar', sub: 'Calcule a economia e o retorno do investimento em painéis solares' },
+    imovel: { title: 'Financiamento Imobiliário', sub: 'Simule parcelas e compare sistemas SAC e Price' },
+    mei: { title: 'Impostos MEI', sub: 'Calcule impostos, pró-labore e margem líquida para MEI' },
+  };
+
+  const info = titles[activeCalc] || { title: 'SimulaGrana', sub: 'Calculadoras financeiras profissionais' };
+
   return (
-    <header className="header">
-      <div className="container" style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        flexDirection: 'column',
-        gap: '1rem',
-        textAlign: 'center'
-      }}>
-        <div style={{ 
-          fontSize: '3rem',
-          fontWeight: '700',
-          color: 'white',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1rem',
-          flexWrap: 'wrap',
-          justifyContent: 'center'
-        }}>
-          <span style={{ fontSize: '3.5rem' }}>💰</span>
-          <span>SimulaGrana</span>
-        </div>
-        <p style={{ 
-          marginTop: '0.5rem',
-          fontSize: '1.1rem',
-          opacity: 0.95,
-          maxWidth: '800px'
-        }}>
-          10 calculadoras profissionais para simular investimentos, FIIs, ações e planeje seu futuro financeiro com dados de 2026
-        </p>
+    <div className="hero-banner">
+      <div>
+        <h1>{info.title}</h1>
+        <p>{info.sub}</p>
       </div>
-    </header>
+      <div className="hero-stats">
+        <div className="hero-stat">
+          <div className="hero-stat-dot"></div>
+          10 Calculadoras
+        </div>
+        <div className="hero-stat">
+          <div className="hero-stat-dot"></div>
+          Dados de 2026
+        </div>
+        <div className="hero-stat">
+          <div className="hero-stat-dot"></div>
+          100% Gratuito
+        </div>
+      </div>
+    </div>
   );
 };
