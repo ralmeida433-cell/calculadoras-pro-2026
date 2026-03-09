@@ -29,18 +29,16 @@ export const MagicNumberFII = () => {
     setResultado(null);
     setMagicNumberBasico(null);
     setApiUsada('');
-    
+
     const tickerUpper = ticker.toUpperCase();
-    
+
     try {
       const response = await fetch(`/api/fii-proxy?ticker=${tickerUpper}`);
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         setFiiData(data.data);
         setApiUsada(data.source);
-        
-        // Calcular Magic Number AUTOMATICAMENTE
         calcularMagicNumberBasico(data.data);
       } else {
         throw new Error(data.error || 'FII não encontrado');
@@ -61,57 +59,59 @@ export const MagicNumberFII = () => {
     }
   };
 
-  // Magic Number CORRETO: Cotação / Dividendo Mensal
-  // Exemplo: Se cotação = R$ 100 e dividendo = R$ 0,80
-  // Magic Number = 100 / 0,80 = 125 cotas
-  // Com 125 cotas: 125 × R$ 0,80 = R$ 100 (compra 1 cota nova)
   const calcularMagicNumberBasico = (fii) => {
-    const cotacao = fii.regularMarketPrice;
-    const dividendoMensal = fii.dividendoMensal;
-    
-    // FÓRMULA CORRETA: Magic Number = Cotação / Dividendo
+    const cotacao = Number(fii.regularMarketPrice || 0);
+    const dividendoMensal = Number(fii.dividendoMensal || 0);
+
+    if (cotacao <= 0 || dividendoMensal <= 0) {
+      setErro('❌ Não foi possível calcular o Magic Number com os dados retornados para este FII.');
+      return;
+    }
+
     const magicNumber = Math.ceil(cotacao / dividendoMensal);
     const investimentoMagic = magicNumber * cotacao;
     const rendaMagic = magicNumber * dividendoMensal;
-    
+
     setMagicNumberBasico({
       cotas: magicNumber,
       investimento: investimentoMagic,
       renda: rendaMagic,
-      cotacao: cotacao,
-      dividendo: dividendoMensal
+      cotacao,
+      dividendo: dividendoMensal,
+      formula: `${cotacao.toFixed(2)} ÷ ${dividendoMensal.toFixed(2)} = ${magicNumber}`
     });
   };
 
-  // Simulação Personalizada (usuário escolhe meta)
   const calcularSimulacao = () => {
     if (!fiiData) return;
-    
-    const cotacao = fiiData.regularMarketPrice;
-    const dividendoMensal = fiiData.dividendoMensal;
-    
+
+    const cotacao = Number(fiiData.regularMarketPrice || 0);
+    const dividendoMensal = Number(fiiData.dividendoMensal || 0);
+
+    if (cotacao <= 0 || dividendoMensal <= 0) return;
+
     const cotasParaMeta = Math.ceil(inputs.metaRendaMensal / dividendoMensal);
     const investimentoMeta = cotasParaMeta * cotacao;
-    
+
     const projecao = [];
     let cotas = inputs.cotasAtuais;
     let valorInvestido = cotas * cotacao;
     let dividendosAcumulados = 0;
     let mes = 0;
-    
+
     while (cotas < cotasParaMeta && mes < 600) {
       mes++;
-      
+
       const cotasCompradas = inputs.aporteMensal / cotacao;
       cotas += cotasCompradas;
       valorInvestido += inputs.aporteMensal;
-      
+
       const dividendosMes = cotas * dividendoMensal;
       dividendosAcumulados += dividendosMes;
-      
+
       const cotasReinvestidas = dividendosMes / cotacao;
       cotas += cotasReinvestidas;
-      
+
       if (mes % 12 === 0 || mes === 1 || cotas >= cotasParaMeta) {
         projecao.push({
           mes,
@@ -124,9 +124,9 @@ export const MagicNumberFII = () => {
         });
       }
     }
-    
+
     const tempoParaMeta = mes / 12;
-    
+
     setResultado({
       cotasParaMeta,
       investimentoMeta,
@@ -138,36 +138,38 @@ export const MagicNumberFII = () => {
   return (
     <div className="calculator-card">
       <h2 className="calculator-title">💎 Magic Number - Fundos Imobiliários</h2>
-      
+      <p className="calculator-subtitle">
+        Fórmula correta: Preço da cota ÷ dividendo mensal por cota = quantidade de cotas necessária para que os rendimentos comprem 1 nova cota por mês.
+      </p>
+
       <div className="alert alert-info">
-        <strong>📊 Magic Number:</strong> Quantidade de cotas necessárias para que os dividendos mensais comprem 1 nova cota por mês.<br/>
-        <strong>Fórmula:</strong> Magic Number = Cotação ÷ Dividendo Mensal<br/>
-        <strong>Exemplo:</strong> Se cota = R$ 100 e dividendo = R$ 0,80 → MN = 125 cotas (125 × R$ 0,80 = R$ 100)
+        <strong>📘 Fórmula do Magic Number:</strong> Preço da Cota ÷ Dividendo Mensal por Cota.<br />
+        O resultado mostra quantas cotas você precisa para gerar dividendos suficientes para comprar 1 nova cota por mês sem novo aporte.
       </div>
 
       <div className="input-group">
         <label className="input-label">Ticker do FII (ex: MXRF11, HGLG11, CPTS11)</label>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <input
             type="text"
             className="input-field"
             value={ticker}
             onChange={(e) => setTicker(e.target.value.toUpperCase())}
-            onKeyPress={(e) => e.key === 'Enter' && buscarFII()}
+            onKeyDown={(e) => e.key === 'Enter' && buscarFII()}
             placeholder="Digite o ticker (ex: MXRF11)"
-            style={{ flex: 1 }}
+            style={{ flex: 1, minWidth: '240px' }}
             maxLength={6}
           />
-          <button 
-            className="button" 
+          <button
+            className="button"
             onClick={buscarFII}
             disabled={loading}
-            style={{ width: 'auto', padding: '0.875rem 1.5rem' }}
+            style={{ width: 'auto', minWidth: '170px' }}
           >
             {loading ? '🔄 Buscando...' : '🔎 Buscar'}
           </button>
         </div>
-        <small style={{ opacity: 0.7, fontSize: '0.875rem', marginTop: '0.25rem', display: 'block' }}>
+        <small style={{ opacity: 0.75, fontSize: '0.875rem', marginTop: '0.5rem', display: 'block' }}>
           💡 FIIs populares: MXRF11, HGLG11, XPML11, VISC11, KNRI11, BTLG11, TRXF11, KNCR11, CPTS11
         </small>
       </div>
@@ -178,116 +180,67 @@ export const MagicNumberFII = () => {
         </div>
       )}
 
-      {/* MAGIC NUMBER AUTOMÁTICO (aparece assim que buscar) */}
       {magicNumberBasico && (
         <>
-          <div style={{ 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            borderRadius: '1rem',
-            padding: '2rem',
-            marginTop: '1.5rem',
-            color: 'white',
-            boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
-          }}>
-            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', marginBottom: '1.5rem', textAlign: 'center' }}>
-              💎 Magic Number do {fiiData.shortName}
-            </h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
-                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Preço atual da cota</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>R$ {magicNumberBasico.cotacao.toFixed(2)}</div>
-              </div>
-              
-              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
-                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>Último rendimento</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>R$ {magicNumberBasico.dividendo.toFixed(2)}</div>
-              </div>
-              
-              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
-                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>🎯 Magic Number</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>{magicNumberBasico.cotas} cotas</div>
-                <small style={{ fontSize: '0.75rem', opacity: 0.8 }}>{magicNumberBasico.cotacao.toFixed(2)} ÷ {magicNumberBasico.dividendo.toFixed(2)}</small>
-              </div>
-              
-              <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '0.75rem', padding: '1.25rem', backdropFilter: 'blur(10px)' }}>
-                <div style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>💰 Investimento necessário</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: '700' }}>R$ {magicNumberBasico.investimento.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              </div>
-            </div>
+          <div className="results-grid" style={{ marginTop: '1.5rem' }}>
+            <ResultCard label="Preço atual da cota" value={magicNumberBasico.cotacao} />
+            <ResultCard label="Dividendo mensal por cota" value={magicNumberBasico.dividendo} />
+            <ResultCard label="Quantidade de cotas" value={`${magicNumberBasico.cotas} cotas`} type="text" large />
+            <ResultCard label="Valor do investimento" value={magicNumberBasico.investimento} />
+          </div>
 
-            <div style={{ 
-              marginTop: '1.5rem', 
-              padding: '1.25rem', 
-              background: 'rgba(16, 185, 129, 0.25)', 
-              borderRadius: '0.75rem',
-              backdropFilter: 'blur(10px)',
-              border: '2px solid rgba(16, 185, 129, 0.5)'
-            }}>
-              <div style={{ fontSize: '0.875rem', opacity: 0.95, marginBottom: '0.5rem', textAlign: 'center' }}>
-                ✨ Com {magicNumberBasico.cotas} cotas, os dividendos compram 1 nova cota todo mês!
-              </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: '700', textAlign: 'center', color: '#10b981' }}>
-                {magicNumberBasico.cotas} cotas × R$ {magicNumberBasico.dividendo.toFixed(2)} = R$ {magicNumberBasico.renda.toFixed(2)} / mês
-              </div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.9, marginTop: '0.5rem', textAlign: 'center' }}>
-                💡 R$ {magicNumberBasico.renda.toFixed(2)} ≈ R$ {magicNumberBasico.cotacao.toFixed(2)} (1 cota nova)
-              </div>
-            </div>
+          <div className="alert alert-success">
+            <strong>✅ Cálculo aplicado:</strong> {magicNumberBasico.formula}.<br />
+            <strong>Verificação:</strong> {magicNumberBasico.cotas} × R$ {magicNumberBasico.dividendo.toFixed(2)} = R$ {magicNumberBasico.renda.toFixed(2)} por mês, valor suficiente para comprar aproximadamente 1 nova cota de R$ {magicNumberBasico.cotacao.toFixed(2)}.
           </div>
 
           {apiUsada && (
-            <div style={{ textAlign: 'center', marginTop: '0.75rem', opacity: 0.6, fontSize: '0.875rem' }}>
+            <div style={{ textAlign: 'center', marginTop: '0.75rem', opacity: 0.65, fontSize: '0.875rem' }}>
               📊 Dados em tempo real via {apiUsada}
             </div>
           )}
         </>
       )}
 
-      {/* SIMULAÇÃO PERSONALIZADA (usuário escolhe cenário) */}
       {fiiData && (
         <>
-          <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '2px solid #e5e7eb' }}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem', color: '#374151' }}>
-              🎯 Simule Seu Próprio Cenário
-            </h3>
-            <p style={{ opacity: 0.7, marginBottom: '1.5rem' }}>
-              Personalize sua meta de renda mensal e veja quanto tempo levará para atingir:
-            </p>
-          </div>
+          <div className="section-divider" />
+          <div className="section-label">Simulação personalizada</div>
 
-          <div className="input-group">
-            <label className="input-label">Meta de Renda Mensal (R$)</label>
-            <input
-              type="number"
-              className="input-field"
-              value={inputs.metaRendaMensal}
-              onChange={(e) => setInputs({...inputs, metaRendaMensal: Number(e.target.value)})}
-            />
-          </div>
+          <div className="inputs-grid">
+            <div className="input-group">
+              <label className="input-label">Meta de renda mensal (R$)</label>
+              <input
+                type="number"
+                className="input-field"
+                value={inputs.metaRendaMensal}
+                onChange={(e) => setInputs({ ...inputs, metaRendaMensal: Number(e.target.value) })}
+              />
+            </div>
 
-          <div className="input-group">
-            <label className="input-label">Aporte Mensal (R$)</label>
-            <input
-              type="number"
-              className="input-field"
-              value={inputs.aporteMensal}
-              onChange={(e) => setInputs({...inputs, aporteMensal: Number(e.target.value)})}
-            />
-          </div>
+            <div className="input-group">
+              <label className="input-label">Aporte mensal (R$)</label>
+              <input
+                type="number"
+                className="input-field"
+                value={inputs.aporteMensal}
+                onChange={(e) => setInputs({ ...inputs, aporteMensal: Number(e.target.value) })}
+              />
+            </div>
 
-          <div className="input-group">
-            <label className="input-label">Cotas que Já Possui</label>
-            <input
-              type="number"
-              className="input-field"
-              value={inputs.cotasAtuais}
-              onChange={(e) => setInputs({...inputs, cotasAtuais: Number(e.target.value)})}
-            />
+            <div className="input-group">
+              <label className="input-label">Cotas que já possui</label>
+              <input
+                type="number"
+                className="input-field"
+                value={inputs.cotasAtuais}
+                onChange={(e) => setInputs({ ...inputs, cotasAtuais: Number(e.target.value) })}
+              />
+            </div>
           </div>
 
           <button className="button" onClick={calcularSimulacao}>
-            Simular Meu Cenário
+            Simular meu cenário
           </button>
         </>
       )}
@@ -295,31 +248,16 @@ export const MagicNumberFII = () => {
       {resultado && (
         <>
           <div className="results-grid" style={{ marginTop: '1.5rem' }}>
-            <ResultCard 
-              label="Cotas Necessárias" 
-              value={`${resultado.cotasParaMeta} cotas`} 
-              type="text"
-              large 
-            />
-            <ResultCard 
-              label="Investimento Total" 
-              value={resultado.investimentoMeta} 
-            />
-            <ResultCard 
-              label="Tempo Estimado" 
-              value={`${resultado.tempoParaMeta} anos`}
-              type="text"
-            />
-            <ResultCard 
-              label="Meta Mensal" 
-              value={inputs.metaRendaMensal} 
-            />
+            <ResultCard label="Cotas necessárias" value={`${resultado.cotasParaMeta} cotas`} type="text" large />
+            <ResultCard label="Investimento total" value={resultado.investimentoMeta} />
+            <ResultCard label="Tempo estimado" value={`${resultado.tempoParaMeta} anos`} type="text" />
+            <ResultCard label="Meta mensal" value={inputs.metaRendaMensal} />
           </div>
 
           <Chart
             data={resultado.projecao}
             dataKeys={['cotas', 'rendaMensal']}
-            colors={['#667eea', '#10b981']}
+            colors={['#2B7A5E', '#1B4D6A']}
             xKey="ano"
             height={350}
           />
@@ -336,8 +274,7 @@ export const MagicNumberFII = () => {
           />
 
           <div className="alert alert-info">
-            <strong>💡 Dica:</strong> O cálculo considera reinvestimento automático de dividendos. 
-            Quanto maior o FII, mais tempo leva, mas a renda passiva é proporcional ao investimento.
+            <strong>💡 Interpretação:</strong> quanto maior o preço da cota e menor o dividendo mensal, maior será o Magic Number necessário para o efeito bola de neve.
           </div>
         </>
       )}
