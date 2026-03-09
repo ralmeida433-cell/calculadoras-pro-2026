@@ -30,11 +30,31 @@ export const MagicNumberFII = () => {
     setMagicNumberBasico(null);
     setApiUsada('');
 
-    const tickerUpper = ticker.toUpperCase();
+    const tickerUpper = ticker.toUpperCase().trim();
 
     try {
-      const response = await fetch(`/api/fii-proxy?ticker=${tickerUpper}`);
+      // URL CORRIGIDA - garantir que sempre vai para a API Vercel
+      const apiUrl = window.location.hostname === 'localhost' 
+        ? `http://localhost:5173/api/fii-proxy?ticker=${tickerUpper}`
+        : `/api/fii-proxy?ticker=${tickerUpper}`;
+      
+      console.log('Chamando API:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      console.log('Status da resposta:', response.status);
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+
       const data = await response.json();
+      console.log('Dados recebidos:', data);
 
       if (data.success && data.data) {
         setFiiData(data.data);
