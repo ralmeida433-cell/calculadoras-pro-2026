@@ -68,17 +68,17 @@ export const MagicNumberFII = () => {
       return;
     }
 
-    const magicNumberPercentual = (dividendoMensal / cotacao) * 100;
-    const dyMensal = magicNumberPercentual;
-    const dyAnualEstimado = dyMensal * 12;
+    // Magic Number = quantidade de cotas necessárias para que o rendimento compre 1 cota nova por mês
+    const magicNumber = Math.ceil(cotacao / dividendoMensal);
+    const valorInvestimento = magicNumber * cotacao;
+    const rendimentoMensalTotal = magicNumber * dividendoMensal;
 
     setMagicNumberBasico({
-      percentual: magicNumberPercentual,
-      dyMensal,
-      dyAnualEstimado,
+      magicNumber,
       cotacao,
       dividendo: dividendoMensal,
-      formula: `(${dividendoMensal.toFixed(2)} ÷ ${cotacao.toFixed(2)}) × 100 = ${magicNumberPercentual.toFixed(2)}%`
+      valorInvestimento,
+      rendimentoMensalTotal
     });
   };
 
@@ -137,14 +137,14 @@ export const MagicNumberFII = () => {
 
   return (
     <div className="calculator-card">
-      <h2 className="calculator-title">💎 Magic Number - Fundos Imobiliários</h2>
+      <h2 className="calculator-title">💎 Magic Number do Fiis</h2>
       <p className="calculator-subtitle">
-        Cálculo em percentual: (dividendo mensal por cota ÷ preço da cota) × 100.
+        Quantas cotas você precisa para que o rendimento delas compre 1 cota nova por mês?
       </p>
 
       <div className="alert alert-info">
-        <strong>📘 Fórmula correta:</strong> Magic Number (%) = (Dividendo Mensal ÷ Preço da Cota) × 100.<br />
-        O resultado representa o retorno mensal percentual da cota com base no dividendo mensal informado.
+        <strong>📚 Fórmula:</strong> Magic Number = Preço da Cota ÷ Último Rendimento.<br />
+        Exemplo: se a cota custa R$ 100 e rende R$ 1/mês, você precisa de 100 cotas para comprar 1 nova todo mês.
       </div>
 
       <div className="input-group">
@@ -182,16 +182,82 @@ export const MagicNumberFII = () => {
 
       {magicNumberBasico && (
         <>
-          <div className="results-grid" style={{ marginTop: '1.5rem' }}>
-            <ResultCard label="Preço atual da cota" value={magicNumberBasico.cotacao} />
-            <ResultCard label="Dividendo mensal por cota" value={magicNumberBasico.dividendo} />
-            <ResultCard label="Magic Number (%)" value={`${magicNumberBasico.percentual.toFixed(2)}%`} type="text" large />
-            <ResultCard label="DY anual estimado" value={`${magicNumberBasico.dyAnualEstimado.toFixed(2)}%`} type="text" />
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1rem',
+            marginTop: '1.5rem'
+          }}>
+            <div style={{
+              background: '#f1f5f9',
+              borderRadius: '12px',
+              padding: '20px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>Preço atual da cota</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#0f172a' }}>
+                R$ {magicNumberBasico.cotacao.toFixed(2)}
+              </div>
+            </div>
+
+            <div style={{
+              background: '#f1f5f9',
+              borderRadius: '12px',
+              padding: '20px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>Último rendimento</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#0f172a' }}>
+                R$ {magicNumberBasico.dividendo.toFixed(2)}
+              </div>
+            </div>
+
+            <div style={{
+              background: '#f1f5f9',
+              borderRadius: '12px',
+              padding: '20px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>Quantidade de cotas</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#0f172a' }}>
+                {magicNumberBasico.magicNumber}
+              </div>
+            </div>
+
+            <div style={{
+              background: '#f1f5f9',
+              borderRadius: '12px',
+              padding: '20px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>Valor do investimento</div>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#0f172a' }}>
+                R$ {magicNumberBasico.valorInvestimento.toFixed(2)}
+              </div>
+            </div>
           </div>
 
-          <div className="alert alert-success">
-            <strong>✅ Cálculo aplicado:</strong> {magicNumberBasico.formula}.<br />
-            <strong>Leitura:</strong> o dividendo mensal de R$ {magicNumberBasico.dividendo.toFixed(2)} representa {magicNumberBasico.percentual.toFixed(2)}% do preço da cota de R$ {magicNumberBasico.cotacao.toFixed(2)} no mês.
+          <div style={{
+            background: '#f1f5f9',
+            borderRadius: '12px',
+            padding: '24px',
+            marginTop: '1rem',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '15px', color: '#64748b', marginBottom: '8px' }}>
+              Com este investimento, compra-se 1 nova cota deste ativo todos os meses.
+            </div>
+            <div style={{
+              fontSize: '20px',
+              fontWeight: '700',
+              color: '#10b981',
+              marginTop: '12px',
+              padding: '16px',
+              background: '#ecfdf5',
+              borderRadius: '8px'
+            }}>
+              R$ {magicNumberBasico.dividendo.toFixed(2)} x {magicNumberBasico.magicNumber} = <span style={{ color: '#059669' }}>R$ {magicNumberBasico.rendimentoMensalTotal.toFixed(2)} / mês</span>
+            </div>
           </div>
 
           {apiUsada && (
@@ -274,7 +340,7 @@ export const MagicNumberFII = () => {
           />
 
           <div className="alert alert-info">
-            <strong>💡 Interpretação:</strong> a simulação abaixo continua usando o dividendo mensal por cota para projetar a renda mensal total e o crescimento da carteira ao longo do tempo.
+            <strong>💡 Interpretação:</strong> a simulação abaixo projeta quanto tempo você leva para atingir sua meta de renda mensal com aportes regulares e reinvestimento de dividendos.
           </div>
         </>
       )}
