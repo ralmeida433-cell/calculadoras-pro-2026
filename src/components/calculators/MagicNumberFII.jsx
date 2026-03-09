@@ -68,17 +68,17 @@ export const MagicNumberFII = () => {
       return;
     }
 
-    const magicNumber = Math.ceil(cotacao / dividendoMensal);
-    const investimentoMagic = magicNumber * cotacao;
-    const rendaMagic = magicNumber * dividendoMensal;
+    const magicNumberPercentual = (dividendoMensal / cotacao) * 100;
+    const dyMensal = magicNumberPercentual;
+    const dyAnualEstimado = dyMensal * 12;
 
     setMagicNumberBasico({
-      cotas: magicNumber,
-      investimento: investimentoMagic,
-      renda: rendaMagic,
+      percentual: magicNumberPercentual,
+      dyMensal,
+      dyAnualEstimado,
       cotacao,
       dividendo: dividendoMensal,
-      formula: `${cotacao.toFixed(2)} ÷ ${dividendoMensal.toFixed(2)} = ${magicNumber}`
+      formula: `(${dividendoMensal.toFixed(2)} ÷ ${cotacao.toFixed(2)}) × 100 = ${magicNumberPercentual.toFixed(2)}%`
     });
   };
 
@@ -139,12 +139,12 @@ export const MagicNumberFII = () => {
     <div className="calculator-card">
       <h2 className="calculator-title">💎 Magic Number - Fundos Imobiliários</h2>
       <p className="calculator-subtitle">
-        Fórmula correta: Preço da cota ÷ dividendo mensal por cota = quantidade de cotas necessária para que os rendimentos comprem 1 nova cota por mês.
+        Cálculo em percentual: (dividendo mensal por cota ÷ preço da cota) × 100.
       </p>
 
       <div className="alert alert-info">
-        <strong>📘 Fórmula do Magic Number:</strong> Preço da Cota ÷ Dividendo Mensal por Cota.<br />
-        O resultado mostra quantas cotas você precisa para gerar dividendos suficientes para comprar 1 nova cota por mês sem novo aporte.
+        <strong>📘 Fórmula correta:</strong> Magic Number (%) = (Dividendo Mensal ÷ Preço da Cota) × 100.<br />
+        O resultado representa o retorno mensal percentual da cota com base no dividendo mensal informado.
       </div>
 
       <div className="input-group">
@@ -185,13 +185,13 @@ export const MagicNumberFII = () => {
           <div className="results-grid" style={{ marginTop: '1.5rem' }}>
             <ResultCard label="Preço atual da cota" value={magicNumberBasico.cotacao} />
             <ResultCard label="Dividendo mensal por cota" value={magicNumberBasico.dividendo} />
-            <ResultCard label="Quantidade de cotas" value={`${magicNumberBasico.cotas} cotas`} type="text" large />
-            <ResultCard label="Valor do investimento" value={magicNumberBasico.investimento} />
+            <ResultCard label="Magic Number (%)" value={`${magicNumberBasico.percentual.toFixed(2)}%`} type="text" large />
+            <ResultCard label="DY anual estimado" value={`${magicNumberBasico.dyAnualEstimado.toFixed(2)}%`} type="text" />
           </div>
 
           <div className="alert alert-success">
             <strong>✅ Cálculo aplicado:</strong> {magicNumberBasico.formula}.<br />
-            <strong>Verificação:</strong> {magicNumberBasico.cotas} × R$ {magicNumberBasico.dividendo.toFixed(2)} = R$ {magicNumberBasico.renda.toFixed(2)} por mês, valor suficiente para comprar aproximadamente 1 nova cota de R$ {magicNumberBasico.cotacao.toFixed(2)}.
+            <strong>Leitura:</strong> o dividendo mensal de R$ {magicNumberBasico.dividendo.toFixed(2)} representa {magicNumberBasico.percentual.toFixed(2)}% do preço da cota de R$ {magicNumberBasico.cotacao.toFixed(2)} no mês.
           </div>
 
           {apiUsada && (
@@ -274,7 +274,7 @@ export const MagicNumberFII = () => {
           />
 
           <div className="alert alert-info">
-            <strong>💡 Interpretação:</strong> quanto maior o preço da cota e menor o dividendo mensal, maior será o Magic Number necessário para o efeito bola de neve.
+            <strong>💡 Interpretação:</strong> a simulação abaixo continua usando o dividendo mensal por cota para projetar a renda mensal total e o crescimento da carteira ao longo do tempo.
           </div>
         </>
       )}
