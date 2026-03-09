@@ -68,7 +68,6 @@ export const MagicNumberFII = () => {
       return;
     }
 
-    // Magic Number = quantidade de cotas necessárias para que o rendimento compre 1 cota nova por mês
     const magicNumber = Math.ceil(cotacao / dividendoMensal);
     const valorInvestimento = magicNumber * cotacao;
     const rendimentoMensalTotal = magicNumber * dividendoMensal;
@@ -78,7 +77,8 @@ export const MagicNumberFII = () => {
       cotacao,
       dividendo: dividendoMensal,
       valorInvestimento,
-      rendimentoMensalTotal
+      rendimentoMensalTotal,
+      estimado: fii.estimado || false
     });
   };
 
@@ -182,6 +182,13 @@ export const MagicNumberFII = () => {
 
       {magicNumberBasico && (
         <>
+          {magicNumberBasico.estimado && (
+            <div className="alert alert-warning" style={{ marginTop: '1rem' }}>
+              ⚠️ <strong>Dividendo estimado:</strong> não foi possível obter o dividendo real deste FII.
+              O valor foi estimado em 0.75% ao mês (média de FIIs brasileiros).
+            </div>
+          )}
+
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -262,7 +269,7 @@ export const MagicNumberFII = () => {
 
           {apiUsada && (
             <div style={{ textAlign: 'center', marginTop: '0.75rem', opacity: 0.65, fontSize: '0.875rem' }}>
-              📊 Dados em tempo real via {apiUsada}
+              📊 Dados via {apiUsada}
             </div>
           )}
         </>
@@ -340,7 +347,7 @@ export const MagicNumberFII = () => {
           />
 
           <div className="alert alert-info">
-            <strong>💡 Interpretação:</strong> a simulação abaixo projeta quanto tempo você leva para atingir sua meta de renda mensal com aportes regulares e reinvestimento de dividendos.
+            <strong>💡 Interpretação:</strong> a simulação projeta quanto tempo você leva para atingir sua meta de renda mensal com aportes regulares e reinvestimento de dividendos.
           </div>
         </>
       )}

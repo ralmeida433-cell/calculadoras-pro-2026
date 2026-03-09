@@ -7,7 +7,6 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle OPTIONS (preflight)
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -19,144 +18,131 @@ export default async function handler(req, res) {
   }
 
   const tickerUpper = ticker.toUpperCase();
+  let precoAtual = null;
+  let dividendoMensal = null;
+  let fonte = null;
 
+  // 1️⃣ Tentar brapi.dev (melhor fonte para FIIs brasileiros)
   try {
-    // 1️⃣ Tentar brapi.dev primeiro (tem dividendos reais)
-    try {
-      const brapiRes = await fetch(
-        `https://brapi.dev/api/quote/${tickerUpper}?fundamental=true`,
-        { headers: { 'Accept': 'application/json' } }
-      );
+    const brapiRes = await fetch(
+      `https://brapi.dev/api/quote/${tickerUpper}?fundamental=true`,
+      { 
+        headers: { 'Accept': 'application/json' },
+        timeout: 5000
+      }
+    );
 
-      if (brapiRes.ok) {
-        const data = await brapiRes.json();
+    if (brapiRes.ok) {
+      const data = await brapiRes.json();
+      
+      if (data.results && data.results.length > 0) {
+        const fii = data.results[0];
         
-        if (data.results && data.results.length > 0) {
-          const fii = data.results[0];
+        if (fii.regularMarketPrice && fii.regularMarketPrice > 0) {
+          precoAtual = fii.regularMarketPrice;
+          fonte = 'brapi.dev';
           
-          if (fii.regularMarketPrice && fii.regularMarketPrice > 0) {
-            let dividendoMensal = 0;
+          // Tentar pegar dividendos reais
+          if (fii.dividendsData?.cashDividends?.length > 0) {
+            const dividendosRecentes = fii.dividendsData.cashDividends
+              .filter(d => d.rate && d.rate > 0)
+              .slice(0, 12);
             
-            // Tentar pegar dividendos reais dos últimos 12 meses
-            if (fii.dividendsData && fii.dividendsData.cashDividends && fii.dividendsData.cashDividends.length > 0) {
-              const dividendosRecentes = fii.dividendsData.cashDividends
-                .filter(d => d.rate && d.rate > 0)
-                .slice(0, 12);
-              
-              if (dividendosRecentes.length > 0) {
-                const somaDividendos = dividendosRecentes.reduce((acc, div) => acc + div.rate, 0);
-                dividendoMensal = somaDividendos / dividendosRecentes.length;
-              }
+            if (dividendosRecentes.length > 0) {
+              const somaDividendos = dividendosRecentes.reduce((acc, div) => acc + div.rate, 0);
+              dividendoMensal = somaDividendos / dividendosRecentes.length;
             }
-            
-            // Se não conseguiu dividendo real, retornar erro
-            if (dividendoMensal <= 0) {
-              return res.status(404).json({
-                success: false,
-                error: `FII "${tickerUpper}" encontrado, mas sem histórico de dividendos disponível. Tente outro ticker.`
-              });
-            }
-
-            return res.status(200).json({
-              success: true,
-              source: 'brapi.dev',
-              data: {
-                symbol: fii.symbol,
-                shortName: fii.shortName || fii.longName || tickerUpper,
-                regularMarketPrice: fii.regularMarketPrice,
-                regularMarketChangePercent: fii.regularMarketChangePercent || 0,
-                dividendoMensal: dividendoMensal
-              }
-            });
           }
         }
       }
-    } catch (error) {
-      console.log('brapi falhou:', error.message);
     }
+  } catch (error) {
+    console.log('brapi.dev falhou:', error.message);
+  }
 
-    // 2️⃣ Tentar Status Invest (dados fundamentalistas brasileiros)
-    try {
-      const statusRes = await fetch(
-        `https://statusinvest.com.br/fundos-imobiliarios/${tickerUpper.toLowerCase()}`,
-        { 
-          headers: { 
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'text/html'
-          } 
-        }
-      );
-
-      if (statusRes.ok) {
-        const html = await statusRes.text();
-        
-        // Extrair preço atual
-        const precoMatch = html.match(/value f-indicator-value[^>]*>\s*R\$\s*([\d,\.]+)/i);
-        // Extrair último rendimento
-        const rendMatch = html.match(/Último\s*rendimento[^>]*>\s*R\$\s*([\d,\.]+)/i);
-        
-        if (precoMatch && rendMatch) {
-          const preco = parseFloat(precoMatch[1].replace('.', '').replace(',', '.'));
-          const rendimento = parseFloat(rendMatch[1].replace('.', '').replace(',', '.'));
-          
-          if (preco > 0 && rendimento > 0) {
-            return res.status(200).json({
-              success: true,
-              source: 'Status Invest',
-              data: {
-                symbol: tickerUpper,
-                shortName: tickerUpper,
-                regularMarketPrice: preco,
-                regularMarketChangePercent: 0,
-                dividendoMensal: rendimento
-              }
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Status Invest falhou:', error.message);
-    }
-
-    // 3️⃣ Tentar Yahoo Finance (mas sem dividendos reais, só preço)
+  // 2️⃣ Se não temos preço ainda, tentar Yahoo Finance
+  if (!precoAtual) {
     try {
       const tickerSA = `${tickerUpper}.SA`;
       const yahooRes = await fetch(
         `https://query1.finance.yahoo.com/v8/finance/chart/${tickerSA}?interval=1d&range=5d`,
-        { headers: { 'Accept': 'application/json' } }
+        { 
+          headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+          timeout: 5000
+        }
       );
 
       if (yahooRes.ok) {
         const data = await yahooRes.json();
         
-        if (data.chart && data.chart.result && data.chart.result[0]) {
-          const result = data.chart.result[0];
-          const meta = result.meta;
-          
-          if (meta.regularMarketPrice && meta.regularMarketPrice > 0) {
-            // Yahoo não tem dividendos de FIIs brasileiros - informar isso ao usuário
-            return res.status(404).json({
-              success: false,
-              error: `FII "${tickerUpper}" encontrado (preço R$ ${meta.regularMarketPrice.toFixed(2)}), mas dividendos não disponíveis nesta fonte. Tente outro ticker ou aguarde atualização dos dados.`
-            });
-          }
+        if (data.chart?.result?.[0]?.meta?.regularMarketPrice) {
+          precoAtual = data.chart.result[0].meta.regularMarketPrice;
+          if (!fonte) fonte = 'Yahoo Finance';
         }
       }
     } catch (error) {
-      console.log('Yahoo falhou:', error.message);
+      console.log('Yahoo Finance falhou:', error.message);
     }
+  }
 
-    // Nenhuma API funcionou
-    return res.status(404).json({
-      success: false,
-      error: `FII "${tickerUpper}" não encontrado ou sem dados de dividendos disponíveis. Verifique o ticker e tente novamente.`
-    });
+  // 3️⃣ Se temos preço mas não temos dividendo, tentar FundsExplorer
+  if (precoAtual && !dividendoMensal) {
+    try {
+      const fundsRes = await fetch(
+        `https://www.fundsexplorer.com.br/funds/${tickerUpper.toLowerCase()}`,
+        { 
+          headers: { 
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html'
+          },
+          timeout: 5000
+        }
+      );
 
-  } catch (error) {
-    console.error('Erro geral:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Erro ao buscar dados do FII'
+      if (fundsRes.ok) {
+        const html = await fundsRes.text();
+        
+        // Procurar pelo último dividendo
+        const dividendoMatch = html.match(/Último Rendimento.*?R\$\s*([\d,\.]+)/is) ||
+                               html.match(/dividend-value[^>]*>\s*R\$\s*([\d,\.]+)/is);
+        
+        if (dividendoMatch) {
+          dividendoMensal = parseFloat(dividendoMatch[1].replace('.', '').replace(',', '.'));
+          fonte = fonte + ' + FundsExplorer';
+        }
+      }
+    } catch (error) {
+      console.log('FundsExplorer falhou:', error.message);
+    }
+  }
+
+  // 4️⃣ Se ainda não temos dividendo, usar estimativa conservadora baseada em DY médio de FIIs
+  if (precoAtual && !dividendoMensal) {
+    // FIIs brasileiros têm DY médio de 0.7% a 1.0% ao mês
+    // Usando 0.75% como estimativa conservadora
+    dividendoMensal = precoAtual * 0.0075;
+    fonte = fonte + ' (dividendo estimado em 0.75% a.m.)';
+  }
+
+  // ✅ Se temos preço E dividendo, retornar sucesso
+  if (precoAtual && dividendoMensal && precoAtual > 0 && dividendoMensal > 0) {
+    return res.status(200).json({
+      success: true,
+      source: fonte,
+      data: {
+        symbol: tickerUpper,
+        shortName: tickerUpper,
+        regularMarketPrice: precoAtual,
+        regularMarketChangePercent: 0,
+        dividendoMensal: dividendoMensal,
+        estimado: !fonte.includes('brapi.dev') || fonte.includes('estimado')
+      }
     });
   }
+
+  // ❌ Se não conseguimos dados, retornar erro
+  return res.status(404).json({
+    success: false,
+    error: `FII "${tickerUpper}" não encontrado. Verifique se o ticker está correto e se o FII está ativo na B3.`
+  });
 }
