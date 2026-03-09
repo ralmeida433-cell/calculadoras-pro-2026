@@ -105,8 +105,8 @@ export const MetodoFisher = () => {
       <h2 className="calculator-title">🚀 Método Fisher - Crescimento</h2>
       
       <div className="alert alert-info">
-        <strong>📚 Philip Fisher:</strong> "Scuttlebutt" - Invista em empresas com crescimento EXCEPCIONAL de longo prazo.
-        Foco: alta receita, expansão margens, inovação (P&D), gestão visiona´ria. PEG < 2.
+        <strong>📚 Philip Fisher:</strong> Scuttlebutt - Invista em empresas com crescimento EXCEPCIONAL de longo prazo.
+        Foco: alta receita, expansão margens, inovação (P&D), gestão visionária. PEG menor que 2.
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
@@ -308,10 +308,10 @@ export const MetodoFisher = () => {
           <div className="alert alert-warning">
             <strong>💡 15 Pontos Fisher (resumo 5 principais):</strong><br/>
             ✅ Crescimento vendas superior à média do setor<br/>
-            ✅ Gestão excepcional e visiona´ria<br/>
+            ✅ Gestão excepcional e visionária<br/>
             ✅ Margens em expansão (eficiência operacional)<br/>
             ✅ Investimento consistente em P&D e inovação<br/>
-            ✅ Vantagens competitivas sustenta´veis de longo prazo
+            ✅ Vantagens competitivas sustentáveis de longo prazo
           </div>
 
           <div className="alert alert-info">
